@@ -1,0 +1,49 @@
+services:
+  client:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+    volumes:
+      - ./Client/src:/app/src  # Montar código fuente para desarrollo
+      - /app/node_modules  # Evitar sobrescribir node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true  # Mejor soporte para hot-reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  server:
+    build:
+      context: ./Server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"  # Backend en puerto 3001 (externo) -> 3000 (interno)
+    env_file: .env
+    environment:
+      - NODE_ENV=development
+      - DB_URL=${DB_URL}
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - ./Server/src:/app/src  # Montar código fuente para desarrollo
+      - /app/node_modules  # Evitar sobrescribir node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge
