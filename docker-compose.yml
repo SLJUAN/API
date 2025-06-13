@@ -1,32 +1,21 @@
 version: "3.8"
 services:
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./Client/build:/usr/share/nginx/html  # Asumiendo que usas React/Vue
-    depends_on:
-      - server
-      - client
-    networks:
-      - app-network
 
   client:
-    build: 
-      context: ./Client
-      dockerfile: Dockerfile
+    build: ./Client
+    ports:
+      - "3002:80"
     restart: unless-stopped
+    depends_on:
+      - server
     networks:
       - app-network
-    # En tu Dockerfile del cliente asegúrate de construir la app
-    # Ejemplo para React: RUN npm run build
    
+
   server:
     build: ./Server
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"  # Backend en puerto 3001 (externo) -> 3000 (interno)
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -35,6 +24,7 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    
 
 networks:
   app-network:
