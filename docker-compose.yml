@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+
+  client:
+    build: ./Client
+    ports:
+      - "3002:80"
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - app-network
+   
+
+  server:
+    build: ./Server
+    ports:
+      - "3000:3000"  # Backend en puerto 3001 (externo) -> 3000 (interno)
+    env_file: .env
+    environment:
+      - NODE_ENV=development
+      - DB_URL=${DB_URL}
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - app-network
+    
+
+networks:
+  app-network:
+    driver: bridge
