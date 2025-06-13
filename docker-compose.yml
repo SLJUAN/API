@@ -1,21 +1,29 @@
 version: "3.8"
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - server
+      - client
+    networks:
+      - app-network
 
   client:
     build: ./Client
-    ports:
-      - "3002:80"
     restart: unless-stopped
-    depends_on:
-      - server
+    expose:
+      - "80"  # Solo expuesto internamente
     networks:
       - app-network
    
-
   server:
     build: ./Server
-    ports:
-      - "3000:3000"  # Backend en puerto 3001 (externo) -> 3000 (interno)
+    expose:
+      - "3000"  # Solo expuesto internamente
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -24,7 +32,6 @@ services:
     restart: unless-stopped
     networks:
       - app-network
-    
 
 networks:
   app-network:
